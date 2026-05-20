@@ -170,18 +170,21 @@ class ProInpainter:
 		##############################################
 		# set up RAFT and flow competition model
 		##############################################
-		self.fix_raft = RAFT_bi(raft_checkpoint, self.device)
+		self.dev0 = 'cuda:0'
+		self.dev1 = 'cuda:1' if torch.cuda.device_count() > 1 else 'cuda:0'
+
+		self.fix_raft = RAFT_bi(raft_checkpoint, self.dev0)
 
 		self.fix_flow_complete = RecurrentFlowCompleteNet(flow_completion_checkpoint)
 		for p in self.fix_flow_complete.parameters():
 			p.requires_grad = False
-		self.fix_flow_complete.to(self.device)
+		self.fix_flow_complete.to(self.dev0)
 		self.fix_flow_complete.eval()
 
 		##############################################
 		# set up ProPainter model
 		##############################################
-		self.model = InpaintGenerator(model_path=propainter_checkpoint).to(self.device)
+		self.model = InpaintGenerator(model_path=propainter_checkpoint).to(self.dev1)
 		self.model.eval()
 
 		if self.use_half:
@@ -214,7 +217,7 @@ class ProInpainter:
 		frames = to_tensors()(frames).unsqueeze(0) * 2 - 1    
 		flow_masks = to_tensors()(flow_masks).unsqueeze(0)
 		masks_dilated = to_tensors()(masks_dilated).unsqueeze(0)
-		frames, flow_masks, masks_dilated = frames.to(self.device), flow_masks.to(self.device), masks_dilated.to(self.device)
+		frames, flow_masks, masks_dilated = (frames.to(self.dev0), flow_masks.to(self.dev0), masks_dilated.to(self.dev0))
 		
 		##############################################
 		# ProPainter inference
@@ -286,7 +289,14 @@ class ProInpainter:
 				pred_flows_bi, _ = self.fix_flow_complete.forward_bidirect_flow(gt_flows_bi, flow_masks)
 				pred_flows_bi = self.fix_flow_complete.combine_flow(gt_flows_bi, pred_flows_bi, flow_masks)
 				torch.cuda.empty_cache()
-				
+
+			# --- GPU transfer to ProPainter GPU ---
+			pred_flows_bi = (pred_flows_bi[0].to(self.dev1), pred_flows_bi[1].to(self.dev1))
+
+			frames = frames.to(self.dev1)
+			flow_masks = flow_masks.to(self.dev1)
+			masks_dilated = masks_dilated.to(self.dev1)
+
 			# ---- image propagation ----
 			masked_frames = frames * (1 - masks_dilated)
 			subvideo_length_img_prop = min(100, subvideo_length) # ensure a minimum of 100 frames for image propagation
