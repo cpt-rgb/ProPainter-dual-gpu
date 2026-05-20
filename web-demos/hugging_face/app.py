@@ -635,11 +635,6 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as iface:
     )
 
     # set example
-    gr.Markdown("## Examples")
-    gr.Examples(
-        examples=[os.path.join(os.path.dirname(__file__), "./test_sample/", test_sample) for test_sample in ["test-sample0.mp4", "test-sample1.mp4", "test-sample2.mp4", "test-sample3.mp4", "test-sample4.mp4"]],
-        inputs=[video_input],
-    )
     gr.Markdown(article)
 
 iface.queue()
