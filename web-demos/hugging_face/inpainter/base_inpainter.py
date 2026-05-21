@@ -170,10 +170,9 @@ class ProInpainter:
 		##############################################
 		# set up RAFT and flow competition model
 		##############################################
-		self.dev0 = 'cuda:0'
-		self.dev1 = 'cuda:1' if torch.cuda.device_count() > 1 else 'cuda:0'
-		# self.dev0 = self.device
-		# self.dev1 = self.device
+
+		self.dev0 = self.device
+		self.dev1 = self.device
 
 		self.fix_raft = RAFT_bi(raft_checkpoint, self.dev0)
 
@@ -227,16 +226,16 @@ class ProInpainter:
 		video_length = frames.size(1)
 		with torch.no_grad():
 			# ---- compute flow ----
-			if frames.size(-1) <= 640: 
-				short_clip_len = 12
-			elif frames.size(-1) <= 720: 
-				short_clip_len = 8
-			elif frames.size(-1) <= 1280:
-				short_clip_len = 4
-			else:
-				short_clip_len = 2
+			# if frames.size(-1) <= 640: 
+			# 	short_clip_len = 12
+			# elif frames.size(-1) <= 720: 
+			# 	short_clip_len = 8
+			# elif frames.size(-1) <= 1280:
+			# 	short_clip_len = 4
+			# else:
+			# 	short_clip_len = 2
 			
-			# short_clip_len = 2
+			short_clip_len = 2
 
 			
 			# use fp32 for RAFT
