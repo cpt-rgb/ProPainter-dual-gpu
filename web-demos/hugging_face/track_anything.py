@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from tqdm import tqdm
 
 from tools.interact_tools import SamControler
