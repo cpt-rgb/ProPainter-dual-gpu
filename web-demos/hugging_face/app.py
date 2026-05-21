@@ -483,7 +483,7 @@ with gr.Blocks(theme=gr.themes.Monochrome(), css=css) as iface:
                                             value=10,)
                     
                     ref_stride_number = gr.Slider(label='Stride of global reference frames.',
-                                            minimum=5,
+                                            minimum=1,
                                             maximum=20,
                                             step=1,
                                             value=10,)
