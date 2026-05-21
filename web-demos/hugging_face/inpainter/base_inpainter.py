@@ -218,7 +218,9 @@ class ProInpainter:
 		frames = to_tensors()(frames).unsqueeze(0) * 2 - 1    
 		flow_masks = to_tensors()(flow_masks).unsqueeze(0)
 		masks_dilated = to_tensors()(masks_dilated).unsqueeze(0)
-		frames, flow_masks, masks_dilated = (frames.to(self.dev1), flow_masks.to(self.dev1), masks_dilated.to(self.dev1))
+		# Keep frames on CPU to save memory!
+		flow_masks = flow_masks.to(self.dev1)
+		masks_dilated = masks_dilated.to(self.dev1)
 		
 		##############################################
 		# ProPainter inference
@@ -270,7 +272,7 @@ class ProInpainter:
 				torch.cuda.empty_cache()
 
 			if self.use_half:
-				frames, flow_masks, masks_dilated = frames.half(), flow_masks.half(), masks_dilated.half()
+				flow_masks, masks_dilated = flow_masks.half(), masks_dilated.half()
 				gt_flows_bi = (gt_flows_bi[0].half(), gt_flows_bi[1].half())
 
 			# ---- complete flow ----
@@ -303,6 +305,11 @@ class ProInpainter:
 				pred_flows_bi = self.fix_flow_complete.combine_flow(gt_flows_bi, pred_flows_bi, flow_masks)
 				torch.cuda.empty_cache()
 
+
+			# ---- image propagation ----
+			frames = frames.to(self.dev1)
+			if self.use_half:
+				frames = frames.half()
 
 			# ---- image propagation ----
 			masked_frames = frames * (1 - masks_dilated)
