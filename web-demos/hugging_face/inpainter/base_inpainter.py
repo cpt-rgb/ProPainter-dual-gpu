@@ -226,16 +226,16 @@ class ProInpainter:
 		video_length = frames.size(1)
 		with torch.no_grad():
 			# ---- compute flow ----
-			if frames.size(-1) <= 640: 
-				short_clip_len = 12
-			elif frames.size(-1) <= 720: 
-				short_clip_len = 8
-			elif frames.size(-1) <= 1280:
-				short_clip_len = 4
-			else:
-				short_clip_len = 2
+			# if frames.size(-1) <= 640: 
+			# 	short_clip_len = 12
+			# elif frames.size(-1) <= 720: 
+			# 	short_clip_len = 8
+			# elif frames.size(-1) <= 1280:
+			# 	short_clip_len = 4
+			# else:
+			# 	short_clip_len = 2
 			
-			# short_clip_len = 2
+			short_clip_len = 2
 
 			
 			# use fp32 for RAFT
